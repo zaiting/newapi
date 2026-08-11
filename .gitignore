@@ -35,6 +35,12 @@ token_estimator_test.go
 skills-lock.json
 .playwright-mcp
 
+# 本地网站改版构建产物及实施方案，不纳入当前仓库。
+/new_web/dist/
+/new_web/node_modules/
+/new_web/tsconfig.node.tsbuildinfo
+/web/WEBSITE_REDESIGN_PLAN.md
+
 # Local-only live probes and scratch test workspaces.
 .local-tests/
 service/relayconvert/chat_responses_live_local_test.go

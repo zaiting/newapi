@@ -1,0 +1,20 @@
+services:
+  enterprise-website:
+    image: yidian-zhiyuan-enterprise-website:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_CONSOLE_URL: ${VITE_CONSOLE_URL:-}
+        VITE_DOCS_URL: ${VITE_DOCS_URL:-}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+    container_name: yidian-zhiyuan-enterprise-website
+    ports:
+      - "${WEBSITE_PORT:-8080}:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
