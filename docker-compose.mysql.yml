@@ -1,0 +1,78 @@
+services:
+  new-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: new-api:local
+    container_name: new-api
+    restart: unless-stopped
+    command: --log-dir /app/logs
+    ports:
+      - "3000:3000"
+    environment:
+      SQL_DSN: "${MYSQL_USER:-new-api}:${MYSQL_PASSWORD:?请设置 MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE:-new-api}?charset=utf8mb4&parseTime=True&loc=Local"
+      REDIS_CONN_STRING: "redis://redis:6379/0"
+      TZ: Asia/Shanghai
+      ERROR_LOG_ENABLED: "true"
+      BATCH_UPDATE_ENABLED: "true"
+      NODE_NAME: new-api-node-1
+    volumes:
+      - new_api_data:/data
+      - new_api_logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - new_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mysql:
+    image: mysql:8.4
+    container_name: new-api-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-new-api}
+      MYSQL_USER: ${MYSQL_USER:-new-api}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请设置 MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请设置 MYSQL_ROOT_PASSWORD}
+    volumes:
+      - new_api_mysql_data:/var/lib/mysql
+    networks:
+      - new_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root --password=\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: new-api-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - new_api_redis_data:/data
+    networks:
+      - new_api_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+networks:
+  new_api_network:
+    driver: bridge
+
+volumes:
+  new_api_data:
+  new_api_logs:
+  new_api_mysql_data:
+  new_api_redis_data:

@@ -98,8 +98,8 @@ export const marketingNavigation: readonly MarketingNavigationEntry[] = [
 
 /** Header 右侧转化入口。 */
 export const marketingHeaderActions: readonly MarketingNavigationItem[] = [
-  { label: siteConfig.consoleConfigured ? 'Sign in to console' : 'Contact us', href: siteConfig.consoleUrl },
-  { label: siteConfig.consoleConfigured ? 'Start for free' : 'Book a solution review', href: siteConfig.consoleUrl },
+  { label: 'Sign in', href: siteConfig.signInUrl },
+  { label: 'Create account', href: siteConfig.signUpUrl },
 ]
 
 /** Footer 导航，避免展示未配置的状态页、备案或认证信息。 */

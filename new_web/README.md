@@ -21,7 +21,7 @@
 
 ## 环境变量
 
-- `VITE_CONSOLE_URL`：现有登录或控制台地址。
+- `VITE_CONSOLE_URL`：控制台入口地址；登录与注册使用同源 `/sign-in`、`/sign-up` 页面。
 - `VITE_DOCS_URL`：开发文档地址。
 - `VITE_CONTACT_EMAIL`：企业联系邮箱。
 

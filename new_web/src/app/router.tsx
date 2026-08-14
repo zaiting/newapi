@@ -2,7 +2,7 @@ import { createRootRoute, createRoute, createRouter } from '@tanstack/react-rout
 
 import { MarketingLayout } from '@/layouts/marketing-layout'
 import { AboutPage } from '@/pages/about-page'
-import { AuthPortalPage } from '@/pages/auth-portal-page'
+import { AuthenticationPage, LegacyAuthenticationRedirect, OAuthCallbackPage, OtpPage } from '@/pages/authentication-page'
 import { ContactPage } from '@/pages/contact-page'
 import { CustomersPage } from '@/pages/customers-page'
 import { HomePage } from '@/pages/home-page'
@@ -44,7 +44,12 @@ const routes = [
   createRoute({ getParentRoute: () => rootRoute, path: '/rankings', component: RankingsPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/privacy-policy', component: PrivacyPolicyPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/user-agreement', component: UserAgreementPage }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/sign-in', component: AuthPortalPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/sign-in', component: () => <AuthenticationPage mode="sign-in" /> }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/sign-up', component: () => <AuthenticationPage mode="sign-up" /> }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/otp', component: OtpPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/oauth/$provider', component: OAuthCallbackPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/login', component: () => <LegacyAuthenticationRedirect to="/sign-in" /> }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/register', component: () => <LegacyAuthenticationRedirect to="/sign-up" /> }),
   createRoute({ getParentRoute: () => rootRoute, path: '/500', component: () => <ServiceErrorPage statusCode={500} /> }),
   createRoute({ getParentRoute: () => rootRoute, path: '/503', component: () => <ServiceErrorPage statusCode={503} /> }),
 ]
