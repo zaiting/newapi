@@ -54,7 +54,7 @@ export function SyncWizardDialog({
     syncWizardOptions,
   } = useModels()
   const isMobile = useIsMobile()
-  const [locale, setLocale] = useState<SyncLocale>('zh')
+  const [locale, setLocale] = useState<SyncLocale>('zh-CN')
   const [source, setSource] = useState<SyncSource>('official')
   const [isSyncing, setIsSyncing] = useState(false)
 
@@ -64,7 +64,7 @@ export function SyncWizardDialog({
 
   useEffect(() => {
     if (open) {
-      setLocale(syncWizardOptions.locale || 'zh')
+      setLocale(syncWizardOptions.locale || 'zh-CN')
       const preferredSource = SYNC_SOURCE_OPTIONS.find(
         (option) => option.value === syncWizardOptions.source
       )
@@ -211,7 +211,7 @@ export function SyncWizardDialog({
         <RadioGroup
           value={locale}
           onValueChange={(v) => setLocale(v as SyncLocale)}
-          className='grid gap-3 sm:grid-cols-3'
+          className='grid gap-3 sm:grid-cols-2'
         >
           {SYNC_LOCALE_OPTIONS.map((option) => (
             <div

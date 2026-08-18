@@ -63,22 +63,22 @@ describe('authentication redirect validation', () => {
 describe('saved authentication language', () => {
   const user: AuthUser = { id: 1, username: 'user', role: 1 }
 
-  test('prefers the explicit user language', () => {
+  test('normalizes unsupported saved language preferences to Chinese', () => {
     expect(
       getSavedLanguage({
         ...user,
         language: 'ja',
         setting: { language: 'fr' },
       })
-    ).toBe('ja')
+    ).toBe('zh')
   })
 
   test('reads object and JSON string settings', () => {
-    expect(getSavedLanguage({ ...user, setting: { language: 'fr' } })).toBe(
-      'fr'
+    expect(getSavedLanguage({ ...user, setting: { language: 'en-US' } })).toBe(
+      'en'
     )
-    expect(getSavedLanguage({ ...user, setting: '{"language":"ru"}' })).toBe(
-      'ru'
+    expect(getSavedLanguage({ ...user, setting: '{"language":"zh-TW"}' })).toBe(
+      'zh'
     )
   })
 

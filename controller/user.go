@@ -825,10 +825,13 @@ func UpdateSelf(c *gin.Context) {
 		// 获取当前用户设置
 		currentSetting := user.GetSetting()
 
-		// 更新language字段
-		if langStr, ok := language.(string); ok {
-			currentSetting.Language = langStr
+		// 只允许保存当前支持的中文或英文语言标识。
+		langStr, ok := language.(string)
+		if !ok || !i18n.IsSupported(langStr) {
+			common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+			return
 		}
+		currentSetting.Language = i18n.NormalizeLanguage(langStr)
 
 		if err := model.UpdateUserSetting(user.Id, currentSetting); err != nil {
 			common.ApiErrorI18n(c, i18n.MsgUpdateFailed)

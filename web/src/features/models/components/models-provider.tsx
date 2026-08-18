@@ -93,7 +93,7 @@ export function ModelsProvider({ children }: { children: React.ReactNode }) {
     locale: SyncLocale
     source: SyncSource
   }>({
-    locale: 'zh',
+    locale: 'zh-CN',
     source: 'official',
   })
   const [tabCategory, setTabCategory] = useState<ModelTabCategory>('metadata')

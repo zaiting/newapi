@@ -17,9 +17,8 @@ import (
 
 const (
 	LangZhCN    = "zh-CN"
-	LangZhTW    = "zh-TW"
 	LangEn      = "en"
-	DefaultLang = LangEn // Fallback to English if language not supported
+	DefaultLang = LangZhCN // 不支持的语言回退为简体中文
 )
 
 //go:embed locales/*.yaml
@@ -40,7 +39,7 @@ func Init() error {
 		bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
 
 		// Load embedded translation files
-		files := []string{"locales/zh-CN.yaml", "locales/zh-TW.yaml", "locales/en.yaml"}
+		files := []string{"locales/zh-CN.yaml", "locales/en.yaml"}
 		for _, file := range files {
 			_, err := bundle.LoadMessageFileFS(localeFS, file)
 			if err != nil {
@@ -51,7 +50,6 @@ func Init() error {
 
 		// Pre-create localizers for supported languages
 		localizers[LangZhCN] = i18n.NewLocalizer(bundle, LangZhCN)
-		localizers[LangZhTW] = i18n.NewLocalizer(bundle, LangZhTW)
 		localizers[LangEn] = i18n.NewLocalizer(bundle, LangEn)
 
 		// Set the TranslateMessage function in common package
@@ -62,7 +60,7 @@ func Init() error {
 
 // GetLocalizer returns a localizer for the specified language
 func GetLocalizer(lang string) *i18n.Localizer {
-	lang = normalizeLang(lang)
+	lang = NormalizeLanguage(lang)
 
 	mu.RLock()
 	loc, ok := localizers[lang]
@@ -126,7 +124,7 @@ func SetUserLangLoader(loader func(userId int) string) {
 // 1. User settings (ContextKeyUserSetting) - if already loaded (e.g., by TokenAuth)
 // 2. Lazy load user language from cache/DB using user ID
 // 3. Language set by middleware (ContextKeyLanguage) - from Accept-Language header
-// 4. Default language (English)
+// 4. Default language (Simplified Chinese)
 func GetLangFromContext(c *gin.Context) string {
 	if c == nil {
 		return DefaultLang
@@ -135,7 +133,7 @@ func GetLangFromContext(c *gin.Context) string {
 	// 1. Try to get language from user settings (if already loaded by TokenAuth or other middleware)
 	if userSetting, ok := common.GetContextKeyType[dto.UserSetting](c, constant.ContextKeyUserSetting); ok {
 		if userSetting.Language != "" {
-			normalized := normalizeLang(userSetting.Language)
+			normalized := NormalizeLanguage(userSetting.Language)
 			if IsSupported(normalized) {
 				return normalized
 			}
@@ -148,7 +146,7 @@ func GetLangFromContext(c *gin.Context) string {
 			if uid, ok := userId.(int); ok && uid > 0 {
 				lang := userLangLoaderFunc(uid)
 				if lang != "" {
-					normalized := normalizeLang(lang)
+					normalized := NormalizeLanguage(lang)
 					if IsSupported(normalized) {
 						return normalized
 					}
@@ -159,7 +157,7 @@ func GetLangFromContext(c *gin.Context) string {
 
 	// 3. Try to get language from context (set by I18n middleware from Accept-Language)
 	if lang := c.GetString(string(constant.ContextKeyLanguage)); lang != "" {
-		normalized := normalizeLang(lang)
+		normalized := NormalizeLanguage(lang)
 		if IsSupported(normalized) {
 			return normalized
 		}
@@ -194,20 +192,17 @@ func ParseAcceptLanguage(header string) string {
 		firstLang = firstLang[:idx]
 	}
 
-	return normalizeLang(firstLang)
+	return NormalizeLanguage(firstLang)
 }
 
-// normalizeLang normalizes language code to supported format
-func normalizeLang(lang string) string {
-	lang = strings.ToLower(strings.TrimSpace(lang))
+// NormalizeLanguage 将语言标识规范化为当前支持的简体中文或英文。
+func NormalizeLanguage(lang string) string {
+	lang = strings.ReplaceAll(strings.ToLower(strings.TrimSpace(lang)), "_", "-")
 
-	// Handle common variations
 	switch {
-	case strings.HasPrefix(lang, "zh-tw"):
-		return LangZhTW
-	case strings.HasPrefix(lang, "zh"):
+	case lang == "zh" || lang == "zhcn" || lang == "zhtw" || strings.HasPrefix(lang, "zh-"):
 		return LangZhCN
-	case strings.HasPrefix(lang, "en"):
+	case lang == "en" || strings.HasPrefix(lang, "en-"):
 		return LangEn
 	default:
 		return DefaultLang
@@ -216,16 +211,16 @@ func normalizeLang(lang string) string {
 
 // SupportedLanguages returns a list of supported language codes
 func SupportedLanguages() []string {
-	return []string{LangZhCN, LangZhTW, LangEn}
+	return []string{LangZhCN, LangEn}
 }
 
 // IsSupported checks if a language code is supported
 func IsSupported(lang string) bool {
-	lang = normalizeLang(lang)
-	for _, supported := range SupportedLanguages() {
-		if lang == supported {
-			return true
-		}
-	}
-	return false
+	lang = strings.ReplaceAll(strings.ToLower(strings.TrimSpace(lang)), "_", "-")
+	return lang == "zh" ||
+		lang == "zhcn" ||
+		lang == "zhtw" ||
+		strings.HasPrefix(lang, "zh-") ||
+		lang == "en" ||
+		strings.HasPrefix(lang, "en-")
 }
